@@ -10,7 +10,7 @@ export const config: StackConfig = {
   },
   dns: {
     rootDomain: "datafi-edge.yourdomain.com",
-    certificateArn: "", // ,
+    certificateArn: "", // "arn:aws:acm:ap-south-1:111:certificate/xxx",
     enableHostedZone: true, // If this is true, the stack will create a new hosted zone if not provided and manage certificates
     enableNameSpace: false, // If this is true, the stack will create a new namespace in the service discovery, this is required only if you are hosting additional Datafi services which interacts each other.
     hostedZoneId: "xxx", // If useHostedZone is true and you want to use an existing hosted zone, provide the ARN here
@@ -25,13 +25,13 @@ export const config: StackConfig = {
         memory: 2048,
         cpu: 1024,
         desiredCount: 1, // Number of instance of the same container you want to run in parallel , default is 1
+        updateApiSecret: process.env.ES1_UPDATE_API_SECRET || "",
         envVars: {
           LOG_LEVEL: "INFO",
           TIMEOUT: "1200",
           CACHE_LIFE: "1800",
-          KEY: "", // ES key
+          KEY: process.env.ES1_KEY || "",
         },
-        updateApiSecret: process.env.ES1_UPDATE_API_SECRET || "", // Update API secret
       },
     ],
     serverless: [],
