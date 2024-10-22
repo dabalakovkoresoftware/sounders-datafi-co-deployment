@@ -9,7 +9,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "cdk deploy"
+    "build-lambda-assets": "./scripts/build-lambda-assets.sh",
+    "deploy": "npm run build-lambda-assets && cdk deploy"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

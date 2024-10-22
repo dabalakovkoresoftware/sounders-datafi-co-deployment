@@ -71,6 +71,7 @@ const updateServiceImage = async (
     // Register new task definition
     const newTaskDef = await ecs
       .registerTaskDefinition({
+        /// @ts-ignore
         family: taskDef.taskDefinition.family,
         taskRoleArn: taskDef.taskDefinition.taskRoleArn,
         executionRoleArn: taskDef.taskDefinition.executionRoleArn,

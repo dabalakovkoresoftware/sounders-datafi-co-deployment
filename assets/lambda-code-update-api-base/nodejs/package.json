@@ -12,9 +12,5 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1377.0"
-  },
-  "devDependencies": {
-    "@types/aws-lambda": "^8.10.115",
-    "typescript": "^5.0.4"
   }
 }
