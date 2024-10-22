@@ -1,0 +1,2 @@
+export ES1_KEY=your_edge_server_key # this identifies the edge server and got private keys used for encryption. to create a new key, use the command: docker run --rm -e ENDPOINT=https://es.datafi-edge.yourdomain.com datafi/es
+export ES1_UPDATE_API_SECRET=your_edge_server_update_api_secret # create a new unique secret with the command: openssl rand -base64 32
