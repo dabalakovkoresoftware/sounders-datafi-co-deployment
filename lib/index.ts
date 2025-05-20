@@ -12,6 +12,8 @@ export class DatafiEdgeStack extends cdk.Stack {
     // If the stack is disabled. do not create any resources
     if (config.disableStack) return;
 
+    this.tags.setTag("Stack", "DatafiEdge");//, 1, true);
+
     // Setup base resources
     const { cluster, namespace, sg, listener, gRPCListener } =
       setupBaseResources(this);

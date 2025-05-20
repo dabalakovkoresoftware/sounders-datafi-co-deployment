@@ -10,6 +10,7 @@ import {
   getCertificateFromArn,
   addALBToZone,
 } from "./hosted-zone";
+import { createVPC } from "./vpc";
 import { createNamespace } from "./namespace";
 
 export const setupBaseResources = (scope: Construct) => {
@@ -23,12 +24,13 @@ export const setupBaseResources = (scope: Construct) => {
       scope,
       rootDomain,
       prefix,
-      config.dns.hostedZoneId
+      config.dns.hostedZoneId,
+      config.dns.certificateArn
     ));
   }
 
   // VPC and ECS cluster
-  const vpc = new EC2.Vpc(scope, `${prefix}-vpc`, { maxAzs: 2 });
+  const vpc = createVPC(scope, config.vpc.vpcId);
   const cluster = new ECS.Cluster(scope, `${prefix}-cluster`, {
     clusterName: `${prefix}-cluster`,
     vpc: vpc,

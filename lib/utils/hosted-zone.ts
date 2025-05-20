@@ -10,8 +10,9 @@ export function createHostedZone(
   stack: Construct,
   rootDomain: string,
   prefix: string,
-  hostedZoneId?: string
-): { zone: R53.IHostedZone; cert: ACM.Certificate } {
+  hostedZoneId?: string,
+  certificateArn?: string
+): { zone: R53.IHostedZone; cert: ACM.ICertificate } {
   let zone: R53.IHostedZone;
   if (hostedZoneId) {
     zone = R53.HostedZone.fromHostedZoneAttributes(stack, `hz-${rootDomain}`, {
@@ -24,11 +25,17 @@ export function createHostedZone(
     });
   }
 
-  const cert = new ACM.Certificate(stack, `${prefix}-cert`, {
-    domainName: `${rootDomain}`,
-    subjectAlternativeNames: [`*.${rootDomain}`],
-    validation: ACM.CertificateValidation.fromDns(zone),
-  });
+  let cert: ACM.ICertificate;
+  if( certificateArn ) {
+    cert = ACM.Certificate.fromCertificateArn(stack, `${prefix}-cert`, certificateArn);
+  }
+  else {
+    cert = new ACM.Certificate(stack, `${prefix}-cert`, {
+      domainName: `${rootDomain}`,
+      subjectAlternativeNames: [`*.${rootDomain}`],
+      validation: ACM.CertificateValidation.fromDns(zone),
+    });
+  }
 
   return {
     zone,

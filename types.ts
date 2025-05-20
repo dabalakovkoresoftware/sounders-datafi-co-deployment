@@ -11,6 +11,9 @@ export type StackConfig = {
     enableNameSpace?: boolean; // If this is true, the stack will create a new namespace in the service discovery, this is required only if you are hosting additional Datafi services which interacts each other.
     hostedZoneId: string; // If useHostedZone is true and you want to use an existing hosted zone, provide the ARN here
   };
+  vpc: {
+    vpcId: string; // If this is provided, the stack will use the existing VPC
+  };
   loadBalancer?: {
     timeout?: number; // Load balancer idle connection timeout in seconds, default is 180
   };

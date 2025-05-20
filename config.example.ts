@@ -15,6 +15,9 @@ export const config: StackConfig = {
     enableNameSpace: false, // If this is true, the stack will create a new namespace in the service discovery, this is required only if you are hosting additional Datafi services which interacts each other.
     hostedZoneId: "xxx", // If useHostedZone is true and you want to use an existing hosted zone, provide the ARN here
   },
+  vpc: {
+    vpcId: "vpc-xxx", // If this is provided, the stack will use the existing VPC
+  },
   edgeServers: {
     longRunning: [
       {
