@@ -33,11 +33,34 @@ export const config: StackConfig = {
           LOG_LEVEL: "INFO",
           TIMEOUT: "1200",
           CACHE_LIFE: "1800",
-          KEY: process.env.ES1_KEY || "",
+          KEY: process.env.ES1_KEY || "", // For next version, use EDGE_KEY instead of KEY
+          JWT_JWKS: process.env.JWT_JWKS || "", // JWT public key for token validation
         },
       },
     ],
     serverless: [],
+  },
+  coordinator: {
+    name: "co",
+    memory: 2048,
+    cpu: 1024,
+    desiredCount: 1,
+    containerTag: "latest",
+    azureContainerRegistry: {
+      registryUrl: "datafi.azurecr.io",
+      username: process.env.ACR_USERNAME || "",
+      password: process.env.ACR_PASSWORD || "",
+    },
+    envVars: {
+      GLOBAL_COORDINATOR: "https://co-global.api.home.datafi.us",
+      KEYVAL: process.env.CO_KEYVAL || "", // Base64 encoded Redis credentials
+      JWT_KID: process.env.CO_JWT_KID || "",
+      JWT_ISS: "https://co.api.home.datafi.us/",
+      JWT_KEY: process.env.CO_JWT_KEY || "", // JWT private key for signing tokens
+      TOKEN_ISSUER:
+        "https://cognito-idp.us-west-2.amazonaws.com/us-west-2_FDV8RBt3G",
+      MODE: "prod",
+    },
   },
   allowDeleteResources: true,
 };
