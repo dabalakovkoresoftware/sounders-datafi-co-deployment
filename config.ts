@@ -20,7 +20,11 @@ export const config: StackConfig = {
       {
         name: "es",
         s3Enabled: true,
-        esContainerTag: "latest",
+        // To deploy the next version of ES instead of latest:
+        // 1. Change esContainerTag to "next"
+        // 2. Replace KEY with EDGE_KEY in envVars
+        // 3. Get EDGE_KEY by running: docker run --rm datafi/es:next --init --endpoint https://<es-endpoint>
+        esContainerTag: "latest", // Change to "next" for next version
         s3BucketSuffix: "",
         memory: 2048,
         cpu: 1024,
@@ -30,7 +34,7 @@ export const config: StackConfig = {
           LOG_LEVEL: "INFO",
           TIMEOUT: "1200",
           CACHE_LIFE: "1800",
-          KEY: process.env.ES1_KEY || "",
+          KEY: process.env.ES1_KEY || "", // For next version, use EDGE_KEY instead of KEY
         },
       },
     ],
