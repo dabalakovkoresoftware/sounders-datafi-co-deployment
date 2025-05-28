@@ -1,6 +1,6 @@
 # Datafi Edge Deployment in AWS
 
-This repository contains an AWS CDK App to self-host the Datafi edge stack in a customer-hosted AWS environment. The edge servers are a crucial component of the Datafi deployment, handling connections to customer data. The coordinator manages authentication and communication between edge servers. Once deployed, end users access data through these hosted edge servers, ensuring that data does not flow through Datafi's cloud network.
+This repository contains an AWS CDK App to self-host the Datafi edge stack in a customer-hosted AWS environment. The edge servers are a crucial component of the Datafi deployment, handling connections to customer data. The coordinator manages authentication to access data, data catalog, policies etc. . Once deployed, end users access data through these hosted edge servers, ensuring that data does not flow through Datafi's cloud network.
 
 ## Overview
 
