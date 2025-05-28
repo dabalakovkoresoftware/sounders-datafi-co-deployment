@@ -18,6 +18,7 @@ export type StackConfig = {
     longRunning: EdgeServerConfig[]; // Long running edge server configurations
     serverless: never[]; // Serverless edge server configurations
   };
+  coordinator?: CoordinatorConfig; // Optional coordinator configuration - only one coordinator per deployment
   allowDeleteResources: boolean; // If this is true, the stack will delete the data resources when the stack is deleted (eg: data uploaded to S3 though the edge server)
 };
 
@@ -36,6 +37,30 @@ export type EdgeServerConfig = {
     TIMEOUT?: string; // default is 60 for long running and 28 for serverless
     CACHE_LIFE?: string; // cache life in seconds, default is 0
     KEY: string;
+    JWT_JWKS?: string; // JWT public key for token validation (should match coordinator's private key)
   };
   updateApiSecret: string; // This API secret should be added to datafi webhook to update the edge server on a new release
+};
+
+export type CoordinatorConfig = {
+  name: string;
+  memory: number;
+  cpu: number;
+  desiredCount?: number; // Number of instance of the same container you want to run in parallel, default is 1
+  priority?: number; // used to set the priority of the listener rules
+  containerTag?: string; // Container tag for the coordinator, default is latest
+  azureContainerRegistry: {
+    registryUrl: string; // e.g., "datafi.azurecr.io"
+    username: string;
+    password: string; // This should be passed via environment variable
+  };
+  envVars: {
+    GLOBAL_COORDINATOR: string;
+    KEYVAL: string; // Base64 encoded Redis credentials
+    JWT_KID: string;
+    JWT_ISS: string;
+    JWT_KEY: string; // JWT private key for signing tokens
+    TOKEN_ISSUER: string;
+    MODE: string;
+  };
 };
