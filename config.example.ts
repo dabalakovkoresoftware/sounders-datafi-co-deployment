@@ -56,7 +56,7 @@ export const config: StackConfig = {
       GLOBAL_COORDINATOR: "https://co-global.api.home.datafi.us",
       KEYVAL: process.env.CO_KEYVAL || "", // Base64 encoded Redis credentials
       JWT_KID: process.env.CO_JWT_KID || "",
-      JWT_ISS: "https://co.api.home.datafi.us/",
+      JWT_ISS: "https://co.<your-domain eg: datafi-edge.yourdomain.com>/", // update this to your domain
       JWT_KEY: process.env.CO_JWT_KEY || "", // JWT private key for signing tokens
       TOKEN_ISSUER:
         "https://cognito-idp.us-west-2.amazonaws.com/us-west-2_FDV8RBt3G",

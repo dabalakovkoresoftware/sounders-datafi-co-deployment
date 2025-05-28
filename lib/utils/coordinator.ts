@@ -48,7 +48,7 @@ export function createCoordinator(
     memory: coordinatorConfig.memory,
     openPorts: [
       {
-        containerPort: 80,
+        containerPort: 8001,
       },
     ],
     envVars,
@@ -80,8 +80,8 @@ export function createCoordinator(
   setHttpsTarget(
     `datafi-co-${coordinatorConfig.name}`,
     listener,
-    targets[80],
-    80,
+    targets[8001],
+    8001,
     undefined,
     domain,
     httpsPriority

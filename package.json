@@ -10,7 +10,8 @@
     "test": "jest",
     "cdk": "cdk",
     "build-lambda-assets": "./scripts/build-lambda-assets.sh",
-    "deploy": "npm run build-lambda-assets && cdk deploy"
+    "deploy": "npm run build && npm run build-lambda-assets && cdk deploy",
+    "clean": "rm -rf dist cdk.out .cdk.staging && find . -type f \\( -name '*.js' -o -name '*.d.ts' \\) -not -path './bin/*' -not -path './scripts/*' -not -path './assets/*' -not -path './node_modules/*' -not -path './.git/*' -delete"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
