@@ -3,6 +3,7 @@ import * as S3 from "aws-cdk-lib/aws-s3";
 import * as ECS from "aws-cdk-lib/aws-ecs";
 import * as IAM from "aws-cdk-lib/aws-iam";
 import * as SD from "aws-cdk-lib/aws-servicediscovery";
+import * as SecretsManager from "aws-cdk-lib/aws-secretsmanager";
 
 import { Construct } from "constructs";
 import { ICluster } from "aws-cdk-lib/aws-ecs";
@@ -21,6 +22,10 @@ export type ServiceProps = {
   policies?: IAM.PolicyStatementProps[];
   envVars?: { [k: string]: string };
   desiredCount?: number;
+  containerImage?: string;
+  registryCredentials?: {
+    credentialsParameter: string;
+  };
 };
 
 export const createService = (
@@ -33,9 +38,22 @@ export const createService = (
   containerTag?: string,
   s3bucket?: S3.Bucket
 ) => {
-  const image = ECS.ContainerImage.fromRegistry(
-    `datafi/es:${containerTag || "latest"}`
-  );
+  const imageUri =
+    props.containerImage || `datafi/es:${containerTag || "latest"}`;
+
+  let image: ECS.ContainerImage;
+  if (props.registryCredentials) {
+    const secret = SecretsManager.Secret.fromSecretCompleteArn(
+      scope,
+      `${prefix}-registry-secret`,
+      props.registryCredentials.credentialsParameter
+    );
+    image = ECS.ContainerImage.fromRegistry(imageUri, {
+      credentials: secret,
+    });
+  } else {
+    image = ECS.ContainerImage.fromRegistry(imageUri);
+  }
 
   // task definition
   const taskDef = new ECS.FargateTaskDefinition(

@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import { setupBaseResources } from "./utils/base";
 import { createHostedZone } from "./utils/hosted-zone";
 import { createLongRunningEdgeServer } from "./utils/edge-server-lr";
+import { createCoordinator } from "./utils/coordinator";
 import { config } from "../config";
 
 export class DatafiEdgeStack extends cdk.Stack {
@@ -28,5 +29,17 @@ export class DatafiEdgeStack extends cdk.Stack {
         namespace
       );
     });
+
+    // Setup Coordinator (if configured)
+    if (config.coordinator) {
+      createCoordinator(
+        this,
+        config.coordinator,
+        cluster,
+        sg,
+        listener,
+        namespace
+      );
+    }
   }
 }
