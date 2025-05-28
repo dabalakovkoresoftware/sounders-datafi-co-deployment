@@ -9,3 +9,4 @@ cdk.out
 config-*.ts
 env.sh
 env-*.sh
+temp.sh
