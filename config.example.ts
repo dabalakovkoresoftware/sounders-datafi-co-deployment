@@ -29,7 +29,6 @@ export const config: StackConfig = {
         memory: 2048,
         cpu: 1024,
         desiredCount: 1, // Number of instance of the same container you want to run in parallel , default is 1
-        updateApiSecret: process.env.ES1_UPDATE_API_SECRET || "",
         envVars: {
           LOG_LEVEL: "INFO",
           TIMEOUT: "1200",
@@ -56,12 +55,13 @@ export const config: StackConfig = {
       GLOBAL_COORDINATOR: "https://co-global.api.home.datafi.us",
       KEYVAL: process.env.CO_KEYVAL || "", // Base64 encoded Redis credentials
       JWT_KID: process.env.CO_JWT_KID || "",
-      JWT_ISS: "https://co.<your-domain eg: datafi-edge.yourdomain.com>/", // update this to your domain
+      JWT_ISS: "https://co.datafi-edge.yourdomain.com/", // update this to your domain
       JWT_KEY: process.env.CO_JWT_KEY || "", // JWT private key for signing tokens
       TOKEN_ISSUER:
         "https://cognito-idp.us-west-2.amazonaws.com/us-west-2_FDV8RBt3G",
       MODE: "prod",
     },
   },
+  updateApiSecret: process.env.UPDATE_API_SECRET || "",
   allowDeleteResources: false,
 };

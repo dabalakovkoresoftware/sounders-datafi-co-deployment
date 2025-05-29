@@ -16,7 +16,7 @@ The AWS CDK App is designed to create the following key components:
 2. **Coordinator**: A single coordinator service that manages datafi catalog and inter-service communication.
 3. **Application Load Balancer (ALB)**: A shared ALB for all edge servers and coordinator.
 4. **Hosted Zone**: A shared hosted zone for DNS management.
-5. **Lambda Functions**: One Lambda function per long-running edge server for version updates.
+5. **Lambda Functions**: A update API endpoint for both edge servers and coordinator to enable remote version updates.
 
 ## Stack Structure
 
@@ -80,7 +80,7 @@ Example:
 
 ```bash
 export ES1_KEY=your_edge_server_key
-export ES1_UPDATE_API_SECRET=your_edge_server_update_api_secret
+export UPDATE_API_SECRET=your_shared_update_api_secret
 
 # Coordinator Configuration
 export ACR_USERNAME=your_azure_container_registry_username
@@ -94,7 +94,7 @@ export JWT_JWKS=your_jwt_public_key
 To generate these values:
 
 - For ES1_KEY: `docker run --rm -e ENDPOINT=https://es.datafi-edge.yourdomain.com datafi/es`
-- For ES1_UPDATE_API_SECRET: `openssl rand -base64 32`
+- For UPDATE_API_SECRET: `openssl rand -base64 32`
 - For CO_KEYVAL: `echo -n '{"kind":"redis","addr":"20.3.178.122:6379","username":"default","password":"your_password"}' | base64`
 - For CO_JWT_KID: Generate a UUID
 - For JWT keys: Generate RSA or ECDSA key pair
@@ -132,9 +132,10 @@ To generate these values:
 
 5. **Update API (Lambda)**
 
-   - One Lambda function created for each long-running edge server.
-   - Provides an API endpoint to update the version of the edge server.
-   - Secured with an API secret.
+   - A unified Lambda function that can update both edge servers and coordinator.
+   - Provides a single API endpoint to update versions of any deployed service.
+   - Secured with a shared API secret across all services.
+   - Routes updates based on the `target` parameter in the request (ES or CO).
 
 6. **Networking**
 

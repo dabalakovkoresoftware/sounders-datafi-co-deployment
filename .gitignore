@@ -10,3 +10,4 @@ config-*.ts
 env.sh
 env-*.sh
 temp.sh
+docs/UPDATE_API.md
