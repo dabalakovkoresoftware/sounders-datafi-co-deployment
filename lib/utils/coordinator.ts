@@ -2,6 +2,7 @@ import { Construct } from "constructs";
 import { CoordinatorConfig } from "../../types";
 import { createService, ServiceProps } from "./service";
 import { setHttpsTarget } from "./targets";
+import { ServiceInfo } from "./update-api";
 import * as cdk from "aws-cdk-lib";
 import { config } from "../../config";
 
@@ -17,7 +18,7 @@ export function createCoordinator(
   sg: cdk.aws_ec2.SecurityGroup,
   listener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
   namespace?: cdk.aws_servicediscovery.PrivateDnsNamespace
-) {
+): ServiceInfo {
   const prefix = `datafi-co-${coordinatorConfig.name}`;
 
   // Container Environment Variables
@@ -48,7 +49,7 @@ export function createCoordinator(
     memory: coordinatorConfig.memory,
     openPorts: [
       {
-        containerPort: 80,
+        containerPort: 8001,
       },
     ],
     envVars,
@@ -60,14 +61,8 @@ export function createCoordinator(
     },
   };
 
-  const { targets } = createService(
-    stack,
-    prefix,
-    cluster,
-    sg,
-    coordinatorProps,
-    namespace
-  );
+  const { targets, CLUSTER_NAME, SERVICE_NAME, CONTAINER_NAME, taskDef } =
+    createService(stack, prefix, cluster, sg, coordinatorProps, namespace);
 
   // Add target group to load balancer
   let domain, httpsPriority;
@@ -80,15 +75,19 @@ export function createCoordinator(
   setHttpsTarget(
     `datafi-co-${coordinatorConfig.name}`,
     listener,
-    targets[80],
-    80,
+    targets[8001],
+    8001,
     undefined,
     domain,
     httpsPriority
   );
 
+  // Return service info for update API
   return {
-    secret: acrSecret,
-    domain,
+    serviceType: "CO",
+    clusterName: CLUSTER_NAME,
+    serviceName: SERVICE_NAME,
+    containerName: CONTAINER_NAME,
+    taskDef: taskDef,
   };
 }

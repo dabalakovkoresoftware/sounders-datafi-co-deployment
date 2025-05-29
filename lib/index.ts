@@ -4,6 +4,8 @@ import { setupBaseResources } from "./utils/base";
 import { createHostedZone } from "./utils/hosted-zone";
 import { createLongRunningEdgeServer } from "./utils/edge-server-lr";
 import { createCoordinator } from "./utils/coordinator";
+import { setupUnifiedUpdateAPI, ServiceInfo } from "./utils/update-api";
+import { setHttpsTarget } from "./utils/targets";
 import { config } from "../config";
 
 export class DatafiEdgeStack extends cdk.Stack {
@@ -17,9 +19,12 @@ export class DatafiEdgeStack extends cdk.Stack {
     const { cluster, namespace, sg, listener, gRPCListener } =
       setupBaseResources(this);
 
+    // Collect all services for update API
+    const services: ServiceInfo[] = [];
+
     // Setup Long running Edge Servers
     config.edgeServers.longRunning.forEach((esConfig) => {
-      createLongRunningEdgeServer(
+      const serviceInfo = createLongRunningEdgeServer(
         this,
         esConfig,
         cluster,
@@ -28,17 +33,46 @@ export class DatafiEdgeStack extends cdk.Stack {
         gRPCListener,
         namespace
       );
+
+      if (serviceInfo) {
+        services.push(serviceInfo);
+      }
     });
 
     // Setup Coordinator (if configured)
     if (config.coordinator) {
-      createCoordinator(
+      const coordinatorInfo = createCoordinator(
         this,
         config.coordinator,
         cluster,
         sg,
         listener,
         namespace
+      );
+
+      if (coordinatorInfo) {
+        services.push(coordinatorInfo);
+      }
+    }
+
+    // Setup update API if we have any services
+    if (services.length > 0) {
+      const unifiedUpdateTarget = setupUnifiedUpdateAPI(
+        this,
+        services,
+        config.updateApiSecret
+      );
+
+      // Add update API target to load balancer
+      setHttpsTarget(
+        "datafi-unified-update-api-target",
+        listener,
+        unifiedUpdateTarget,
+        undefined,
+        undefined,
+        `update.${config.dns.rootDomain}`,
+        50, // High priority for update API
+        true
       );
     }
   }

@@ -19,6 +19,7 @@ export type StackConfig = {
     serverless: never[]; // Serverless edge server configurations
   };
   coordinator?: CoordinatorConfig; // Optional coordinator configuration - only one coordinator per deployment
+  updateApiSecret: string; // Shared API secret for all update endpoints (ES and CO)
   allowDeleteResources: boolean; // If this is true, the stack will delete the data resources when the stack is deleted (eg: data uploaded to S3 though the edge server)
 };
 
@@ -36,10 +37,10 @@ export type EdgeServerConfig = {
     LOG_LEVEL: string; // default is INFO
     TIMEOUT?: string; // default is 60 for long running and 28 for serverless
     CACHE_LIFE?: string; // cache life in seconds, default is 0
-    KEY: string;
+    KEY?: string;
+    EDGE_KEY?: string;
     JWT_JWKS?: string; // JWT public key for token validation (should match coordinator's private key)
   };
-  updateApiSecret: string; // This API secret should be added to datafi webhook to update the edge server on a new release
 };
 
 export type CoordinatorConfig = {

@@ -8,7 +8,7 @@ set -e
 echo "Generating JWT key pair for Datafi coordinator..."
 
 # Generate private key
-openssl genpkey -algorithm RSA -out jwt-private-key.pem -aes256
+openssl genpkey -algorithm RSA -out jwt-private-key.pem
 echo "Private key generated: jwt-private-key.pem"
 
 # Generate public key
@@ -22,14 +22,14 @@ echo "Generated JWT_KID: $JWT_KID"
 echo ""
 echo "Add these to your env.sh file:"
 echo "export CO_JWT_KID=\"$JWT_KID\""
-echo "export CO_JWT_KEY=\"\$(cat jwt-private-key.pem | tr -d '\n')\""
-echo "export JWT_JWKS=\"\$(cat jwt-public-key.pem | tr -d '\n')\""
+echo "export CO_JWT_KEY=\"$(tr -d '\n' < jwt-private-key.pem)\""
+echo "export JWT_JWKS=\"$(tr -d '\n' < jwt-public-key.pem)\""
 
 echo ""
 echo "IMPORTANT:"
 echo "1. Keep jwt-private-key.pem secure and do not commit it to version control"
 echo "2. The public key (jwt-public-key.pem) will be shared with edge servers"
-echo "3. You'll be prompted for a passphrase - remember it as you'll need it"
+echo "3. The private key is unencrypted, so keep it secure"
 
 echo ""
 echo "Example Redis KEYVAL generation:"
