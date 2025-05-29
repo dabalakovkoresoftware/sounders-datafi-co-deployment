@@ -47,6 +47,7 @@ export class DatafiEdgeStack extends cdk.Stack {
         cluster,
         sg,
         listener,
+        gRPCListener,
         namespace
       );
 
