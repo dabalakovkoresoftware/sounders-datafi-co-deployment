@@ -10,3 +10,5 @@ config-*.ts
 env.sh
 env-*.sh
 temp.sh
+*.pem
+deploy*.ps1
