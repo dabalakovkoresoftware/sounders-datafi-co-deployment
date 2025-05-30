@@ -59,7 +59,6 @@ export const config: StackConfig = {
       TOKEN_ISSUER:
         "https://cognito-idp.us-west-2.amazonaws.com/us-west-2_FDV8RBt3G",
       MODE: "prod",
-      LOG_LEVEL: "INFO",
     },
   },
   updateApiSecret: process.env.UPDATE_API_SECRET || "",
