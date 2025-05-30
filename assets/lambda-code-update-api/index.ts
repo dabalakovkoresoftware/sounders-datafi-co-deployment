@@ -10,10 +10,23 @@ console.log("Lambda function update-api is starting");
 
 // Environment variables required
 const API_SECRET = process.env.API_SECRET as string;
+const REGION = process.env.AWS_REGION as string;
+
+// For backward compatibility with single service mode
 const CLUSTER_NAME = process.env.CLUSTER_NAME as string;
 const SERVICE_NAME = process.env.SERVICE_NAME as string;
 const CONTAINER_NAME = process.env.CONTAINER_NAME as string;
-const REGION = process.env.AWS_REGION as string;
+const SERVICE_TYPE = process.env.SERVICE_TYPE as string; // "ES" or "CO"
+
+// For unified multi-service mode
+const SERVICES_CONFIG = process.env.SERVICES_CONFIG;
+
+interface ServiceConfig {
+  serviceType: "ES" | "CO";
+  clusterName: string;
+  serviceName: string;
+  containerName: string;
+}
 
 const validateApiKey = (headers: {
   [key: string]: string | undefined;
@@ -24,20 +37,59 @@ const validateApiKey = (headers: {
   }
 };
 
+const getServiceConfig = (target: string): ServiceConfig => {
+  // If we're in unified mode with multiple services
+  if (SERVICES_CONFIG) {
+    const services: ServiceConfig[] = JSON.parse(SERVICES_CONFIG);
+    const targetService = services.find(
+      (service) => service.serviceType.toUpperCase() === target.toUpperCase()
+    );
+
+    if (!targetService) {
+      throw new Error(
+        `Service type '${target}' not found. Available types: ${services
+          .map((s) => s.serviceType)
+          .join(", ")}`
+      );
+    }
+
+    return targetService;
+  }
+
+  // Backward compatibility mode - single service
+  if (!CLUSTER_NAME || !SERVICE_NAME || !CONTAINER_NAME || !SERVICE_TYPE) {
+    throw new Error("Service configuration not found");
+  }
+
+  if (target.toUpperCase() !== SERVICE_TYPE.toUpperCase()) {
+    throw new Error(
+      `This endpoint only supports ${SERVICE_TYPE} updates. Requested: ${target}`
+    );
+  }
+
+  return {
+    serviceType: SERVICE_TYPE as "ES" | "CO",
+    clusterName: CLUSTER_NAME,
+    serviceName: SERVICE_NAME,
+    containerName: CONTAINER_NAME,
+  };
+};
+
 const updateServiceImage = async (
-  imageTag: string
+  imageTag: string,
+  serviceConfig: ServiceConfig
 ): Promise<{ newTaskDefinitionArn: string; serviceArn: string }> => {
   try {
     // Get current task definition
     const service = await ecs
       .describeServices({
-        cluster: CLUSTER_NAME,
-        services: [SERVICE_NAME],
+        cluster: serviceConfig.clusterName,
+        services: [serviceConfig.serviceName],
       })
       .promise();
 
     if (!service.services || service.services.length === 0) {
-      throw new Error("Service not found");
+      throw new Error(`Service '${serviceConfig.serviceName}' not found`);
     }
     console.log("Service found:", service.services[0]);
 
@@ -59,7 +111,7 @@ const updateServiceImage = async (
     // Create new task definition with updated image
     const containerDefinitions =
       taskDef.taskDefinition.containerDefinitions?.map((container) => {
-        if (container.name === CONTAINER_NAME && container.image) {
+        if (container.name === serviceConfig.containerName && container.image) {
           // Preserve the repository URL but update the tag
           const currentImage = container.image;
           const repository = currentImage.split(":")[0];
@@ -95,8 +147,8 @@ const updateServiceImage = async (
     // Update service with new task definition
     const updatedService = await ecs
       .updateService({
-        cluster: CLUSTER_NAME,
-        service: SERVICE_NAME,
+        cluster: serviceConfig.clusterName,
+        service: serviceConfig.serviceName,
         taskDefinition: newTaskDef.taskDefinition.taskDefinitionArn,
         forceNewDeployment: true,
       })
@@ -147,9 +199,12 @@ const handler = async (
     }
 
     // Parse and validate request body
-    let body: { imageTag: string };
+    let body: { imageTag: string; target: string };
     try {
-      body = JSON.parse(event.body || "{}") as { imageTag: string };
+      body = JSON.parse(event.body || "{}") as {
+        imageTag: string;
+        target: string;
+      };
     } catch (error) {
       return {
         statusCode: 400,
@@ -166,8 +221,33 @@ const handler = async (
       };
     }
 
+    if (!body.target) {
+      return {
+        statusCode: 400,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          error: "target is required in request body. Must be 'ES' or 'CO'",
+        }),
+      };
+    }
+
+    // Get service configuration based on target
+    let serviceConfig: ServiceConfig;
+    try {
+      serviceConfig = getServiceConfig(body.target);
+    } catch (error) {
+      return {
+        statusCode: 400,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          error: "Invalid target",
+          message: (error as Error).message,
+        }),
+      };
+    }
+
     // Update the service with new image
-    const result = await updateServiceImage(body.imageTag);
+    const result = await updateServiceImage(body.imageTag, serviceConfig);
 
     return {
       statusCode: 200,
@@ -176,7 +256,9 @@ const handler = async (
         "X-Request-Id": context.awsRequestId,
       },
       body: JSON.stringify({
-        message: "Service update initiated successfully",
+        message: `${serviceConfig.serviceType} service update initiated successfully`,
+        serviceType: serviceConfig.serviceType,
+        serviceName: serviceConfig.serviceName,
         details: result,
         requestId: context.awsRequestId,
         timestamp: new Date().toISOString(),

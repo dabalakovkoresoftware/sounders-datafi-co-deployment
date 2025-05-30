@@ -1,7 +1,8 @@
 import { Construct } from "constructs";
 import { CoordinatorConfig } from "../../types";
 import { createService, ServiceProps } from "./service";
-import { setHttpsTarget } from "./targets";
+import { setHttpsTarget, setGrpcTarget } from "./targets";
+import { ServiceInfo } from "./update-api";
 import * as cdk from "aws-cdk-lib";
 import { config } from "../../config";
 
@@ -16,8 +17,9 @@ export function createCoordinator(
   cluster: cdk.aws_ecs.Cluster,
   sg: cdk.aws_ec2.SecurityGroup,
   listener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
+  gRPCListener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
   namespace?: cdk.aws_servicediscovery.PrivateDnsNamespace
-) {
+): ServiceInfo {
   const prefix = `datafi-co-${coordinatorConfig.name}`;
 
   // Container Environment Variables
@@ -48,7 +50,11 @@ export function createCoordinator(
     memory: coordinatorConfig.memory,
     openPorts: [
       {
-        containerPort: 80,
+        containerPort: 8001,
+      },
+      {
+        containerPort: 50051,
+        hostPort: 50051,
       },
     ],
     envVars,
@@ -60,35 +66,45 @@ export function createCoordinator(
     },
   };
 
-  const { targets } = createService(
-    stack,
-    prefix,
-    cluster,
-    sg,
-    coordinatorProps,
-    namespace
-  );
+  const { targets, CLUSTER_NAME, SERVICE_NAME, CONTAINER_NAME, taskDef } =
+    createService(stack, prefix, cluster, sg, coordinatorProps, namespace);
 
   // Add target group to load balancer
-  let domain, httpsPriority;
+  let domain, httpsPriority, grpcPriority;
 
   if (config.dns.rootDomain) {
     domain = `${coordinatorConfig.name}.${config.dns.rootDomain}`;
     httpsPriority = 2000 + (coordinatorConfig.priority || 0); // Higher priority than edge servers
+    grpcPriority = 2000 + (coordinatorConfig.priority || 0); // Higher priority than edge servers
   }
 
   setHttpsTarget(
     `datafi-co-${coordinatorConfig.name}`,
     listener,
-    targets[80],
-    80,
+    targets[8001],
+    8001,
     undefined,
     domain,
     httpsPriority
   );
 
-  return {
-    secret: acrSecret,
+  // Add gRPC target group
+  setGrpcTarget(
+    `datafi-co-${coordinatorConfig.name}`,
+    gRPCListener,
+    50051,
+    targets[50051],
+    "/coordinator.Coordinator/Ping", // Health check path from reference
     domain,
+    grpcPriority
+  );
+
+  // Return service info for update API
+  return {
+    serviceType: "CO",
+    clusterName: CLUSTER_NAME,
+    serviceName: SERVICE_NAME,
+    containerName: CONTAINER_NAME,
+    taskDef: taskDef,
   };
 }

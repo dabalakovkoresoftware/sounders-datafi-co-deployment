@@ -3,9 +3,9 @@ import { EdgeServerConfig } from "../../types";
 import { createS3Bucket } from "./s3";
 import { createService, ServiceProps } from "./service";
 import { setGrpcTarget, setHttpsTarget } from "./targets";
+import { ServiceInfo } from "./update-api";
 import * as cdk from "aws-cdk-lib";
 import { config } from "../../config";
-import { setupESUpdateAPI } from "./update-api";
 
 const defaultEnvVars = {
   LOG_LEVEL: "INFO",
@@ -33,13 +33,12 @@ export function createLongRunningEdgeServer(
   listener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
   gRPCListener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
   namespace?: cdk.aws_servicediscovery.PrivateDnsNamespace
-) {
+): ServiceInfo {
   let s3bucket: cdk.aws_s3.Bucket | undefined = undefined;
 
   const prefix = `datafi-es-${esConfig.name}`;
 
-  // Container Envitonment Variables
-
+  // Container Environment Variables
   const envVars = { ...defaultEnvVars, ...esConfig.envVars };
 
   if (!envVars.MEMORY) {
@@ -80,12 +79,11 @@ export function createLongRunningEdgeServer(
       sg,
       esProps,
       namespace,
-      undefined,
+      esConfig.esContainerTag,
       s3bucket
     );
 
   // add target group to container
-
   let domain, httpsPriority, grpcPriority;
 
   if (config.dns.rootDomain) {
@@ -114,23 +112,12 @@ export function createLongRunningEdgeServer(
     httpsPriority
   );
 
-  // setup update stack
-  const updateTarget = setupESUpdateAPI(
-    stack,
-    CLUSTER_NAME,
-    CONTAINER_NAME,
-    SERVICE_NAME,
-    taskDef,
-    esConfig.updateApiSecret
-  );
-  setHttpsTarget(
-    `datafi-edge-update-api-target`,
-    listener,
-    updateTarget,
-    undefined,
-    undefined,
-    `df-update.${config.dns.rootDomain}`,
-    100,
-    true
-  );
+  // Return service info for update API
+  return {
+    serviceType: "ES",
+    clusterName: CLUSTER_NAME,
+    serviceName: SERVICE_NAME,
+    containerName: CONTAINER_NAME,
+    taskDef: taskDef,
+  };
 }
