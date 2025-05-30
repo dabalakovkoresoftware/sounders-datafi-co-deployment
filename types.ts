@@ -66,6 +66,5 @@ export type CoordinatorConfig = {
     JWT_KEY: string; // JWT private key for signing tokens
     TOKEN_ISSUER: string;
     MODE: string;
-    LOG_LEVEL: string; // default is DEBUG
   };
 };
