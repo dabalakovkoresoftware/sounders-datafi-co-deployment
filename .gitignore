@@ -12,3 +12,4 @@ env-*.sh
 temp.sh
 *.pem
 deploy*.ps1
+docs/UPDATE_API.md
