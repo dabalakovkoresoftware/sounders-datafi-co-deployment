@@ -1,11 +1,17 @@
-import { ECS } from "aws-sdk";
+import {
+  ECSClient,
+  DescribeServicesCommand,
+  DescribeTaskDefinitionCommand,
+  RegisterTaskDefinitionCommand,
+  UpdateServiceCommand,
+} from "@aws-sdk/client-ecs";
 import {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
 
-const ecs = new ECS();
+const ecsClient = new ECSClient({ region: process.env.AWS_REGION });
 console.log("Lambda function update-api is starting");
 
 // Environment variables required
@@ -81,12 +87,12 @@ const updateServiceImage = async (
 ): Promise<{ newTaskDefinitionArn: string; serviceArn: string }> => {
   try {
     // Get current task definition
-    const service = await ecs
-      .describeServices({
+    const service = await ecsClient.send(
+      new DescribeServicesCommand({
         cluster: serviceConfig.clusterName,
         services: [serviceConfig.serviceName],
       })
-      .promise();
+    );
 
     if (!service.services || service.services.length === 0) {
       throw new Error(`Service '${serviceConfig.serviceName}' not found`);
@@ -97,11 +103,11 @@ const updateServiceImage = async (
     if (!taskDefinitionArn) {
       throw new Error("Task definition not found");
     }
-    const taskDef = await ecs
-      .describeTaskDefinition({
+    const taskDef = await ecsClient.send(
+      new DescribeTaskDefinitionCommand({
         taskDefinition: taskDefinitionArn,
       })
-      .promise();
+    );
 
     if (!taskDef.taskDefinition) {
       throw new Error("Task definition not found");
@@ -121,9 +127,8 @@ const updateServiceImage = async (
       });
 
     // Register new task definition
-    const newTaskDef = await ecs
-      .registerTaskDefinition({
-        /// @ts-ignore
+    const newTaskDef = await ecsClient.send(
+      new RegisterTaskDefinitionCommand({
         family: taskDef.taskDefinition.family,
         taskRoleArn: taskDef.taskDefinition.taskRoleArn,
         executionRoleArn: taskDef.taskDefinition.executionRoleArn,
@@ -136,7 +141,7 @@ const updateServiceImage = async (
         memory: taskDef.taskDefinition.memory,
         runtimePlatform: taskDef.taskDefinition.runtimePlatform,
       })
-      .promise();
+    );
 
     if (!newTaskDef.taskDefinition) {
       throw new Error("Failed to register new task definition");
@@ -145,14 +150,14 @@ const updateServiceImage = async (
     console.log("New task definition created:", newTaskDef.taskDefinition);
 
     // Update service with new task definition
-    const updatedService = await ecs
-      .updateService({
+    const updatedService = await ecsClient.send(
+      new UpdateServiceCommand({
         cluster: serviceConfig.clusterName,
         service: serviceConfig.serviceName,
         taskDefinition: newTaskDef.taskDefinition.taskDefinitionArn,
         forceNewDeployment: true,
       })
-      .promise();
+    );
     console.log("Service updated:", updatedService.service);
 
     if (!updatedService.service) {

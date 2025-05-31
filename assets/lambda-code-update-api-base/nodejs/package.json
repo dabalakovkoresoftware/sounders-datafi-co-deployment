@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.1377.0"
+    "@aws-sdk/client-ecs": "^3.0.0"
   }
 }
