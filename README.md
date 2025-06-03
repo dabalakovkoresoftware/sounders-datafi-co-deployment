@@ -99,6 +99,21 @@ To generate these values:
 - For CO_JWT_KID: Generate a UUID
 - For JWT keys: Generate RSA or ECDSA key pair
 
+### Redis Databases
+
+In addition to this stack, you will need two Redis databases:
+
+- A coordinator database (workspace data storage)
+- A vector storage database
+
+Both databases must have the Search and JSON modules enabled. You can use RedisLabs managed service, self-hosted Redis, redis-stack-server, or any Redis deployment with these modules enabled.
+
+Store the coordinator database credentials in the `KEYVAL` environment variable using the base64-encoded JSON format as shown above. After deploying the coordinator and creating the Datafi workspace, update the vector database credentials in the workspace settings.
+
+### LLM Credentials
+
+Add credentials for accessing your LLM in the workspace settings after creating your workspace.
+
 ## Architecture Details
 
 1. **Edge Servers**
