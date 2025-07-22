@@ -58,6 +58,22 @@ export function createCoordinator(
       },
     ],
     envVars,
+    policies: [
+      {
+        actions: ["bedrock:InvokeModel"],
+        resources: [
+          "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0",
+          "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0",
+          "arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0",
+          "arn:aws:bedrock:us-west-2:779846784384:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0",
+
+          "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-sonic-v1:0",
+
+          "arn:aws:bedrock:us-west-2::foundation-model/amazon.titan-embed-text-v2:0",
+          "arn:aws:sagemaker:us-west-2:aws:hub-content/SageMakerPublicHub/Model/huggingface-asr-whisper-large-v3-turbo/1.1.11"
+        ],
+      }
+    ],
     containerImage: `${
       coordinatorConfig.azureContainerRegistry.registryUrl
     }/co:${coordinatorConfig.containerTag || "latest"}`,

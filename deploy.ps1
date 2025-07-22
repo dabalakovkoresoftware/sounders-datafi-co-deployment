@@ -21,4 +21,5 @@ foreach ($key in $secrets.PSObject.Properties.Name) {
 }
 
 write-host "Deploying Sounders Datafi to AWS..."
+#npx cdk diff --profile sounders
 npx cdk deploy --profile sounders
