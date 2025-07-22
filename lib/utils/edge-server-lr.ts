@@ -32,7 +32,11 @@ export function createLongRunningEdgeServer(
   sg: cdk.aws_ec2.SecurityGroup,
   listener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
   gRPCListener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
-  namespace?: cdk.aws_servicediscovery.PrivateDnsNamespace
+  namespace?: cdk.aws_servicediscovery.PrivateDnsNamespace,
+  sharedS3Buckets?: {
+    datafilesBucket: cdk.aws_s3.Bucket;
+    documentsBucket: cdk.aws_s3.Bucket;
+  }
 ): ServiceInfo {
   let s3bucket: cdk.aws_s3.Bucket | undefined = undefined;
 
@@ -71,6 +75,10 @@ export function createLongRunningEdgeServer(
     envVars,
   };
 
+  const additionalS3Buckets = sharedS3Buckets
+    ? [sharedS3Buckets.datafilesBucket, sharedS3Buckets.documentsBucket]
+    : undefined;
+
   const { targets, CLUSTER_NAME, SERVICE_NAME, CONTAINER_NAME, taskDef } =
     createService(
       stack,
@@ -80,7 +88,8 @@ export function createLongRunningEdgeServer(
       esProps,
       namespace,
       esConfig.esContainerTag,
-      s3bucket
+      s3bucket,
+      additionalS3Buckets
     );
 
   // add target group to container

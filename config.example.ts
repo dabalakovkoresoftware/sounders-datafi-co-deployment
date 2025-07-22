@@ -1,6 +1,7 @@
 import { StackConfig } from "./types";
 
 export const config: StackConfig = {
+  deploymentName: "mydeployment", // Name of this deployment
   aws: {
     accountId: "12xxx", // your aws account id
     region: "us-east-1", // your aws region
@@ -63,5 +64,6 @@ export const config: StackConfig = {
     },
   },
   updateApiSecret: process.env.UPDATE_API_SECRET || "",
+  sharedS3BucketSuffix: "v1", // Optional suffix for shared S3 buckets to ensure uniqueness
   allowDeleteResources: false,
 };

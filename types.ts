@@ -1,5 +1,6 @@
 export type StackConfig = {
   disableStack?: boolean; // If this is true, the stack will not be created
+  deploymentName: string; // Name of the deployment (e.g., "sounders") used for resource naming
   aws: {
     accountId: string;
     region: string;
@@ -20,6 +21,7 @@ export type StackConfig = {
   };
   coordinator?: CoordinatorConfig; // Optional coordinator configuration - only one coordinator per deployment
   updateApiSecret: string; // Shared API secret for all update endpoints (ES and CO)
+  sharedS3BucketSuffix?: string; // Optional suffix for shared S3 buckets to ensure uniqueness
   allowDeleteResources: boolean; // If this is true, the stack will delete the data resources when the stack is deleted (eg: data uploaded to S3 though the edge server)
 };
 
