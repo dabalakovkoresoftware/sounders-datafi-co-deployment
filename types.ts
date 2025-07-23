@@ -21,14 +21,12 @@ export type StackConfig = {
   };
   coordinator?: CoordinatorConfig; // Optional coordinator configuration - only one coordinator per deployment
   updateApiSecret: string; // Shared API secret for all update endpoints (ES and CO)
-  sharedS3BucketSuffix?: string; // Optional suffix for shared S3 buckets to ensure uniqueness
+  sharedS3BucketSuffix?: string; // Optional suffix for shared S3 buckets to ensure uniqueness, can be used if you get the error that says bucket name already exists
   allowDeleteResources: boolean; // If this is true, the stack will delete the data resources when the stack is deleted (eg: data uploaded to S3 though the edge server)
 };
 
 export type EdgeServerConfig = {
   name: string;
-  s3Enabled: boolean;
-  s3BucketSuffix?: string; // s3BucketSuffix - can be used if you get the error that says bucket name already exists
   esContainerTag?: string; // Container tag for the edge server , default is latest
   memory: number;
   cpu: number;
@@ -42,6 +40,7 @@ export type EdgeServerConfig = {
     KEY?: string;
     EDGE_KEY?: string;
     JWT_JWKS?: string; // JWT public key for token validation (should match coordinator's private key)
+    PARQUET_STORAGE?: string; // This is used for Datafiles Storage
   };
 };
 

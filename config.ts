@@ -1,6 +1,7 @@
 import { StackConfig } from "./types";
 
 export const config: StackConfig = {
+  deploymentName: "name",
   aws: {
     accountId: "12xxx", // your aws account id
     region: "us-east-1", // your aws region
@@ -19,13 +20,11 @@ export const config: StackConfig = {
     longRunning: [
       {
         name: "es",
-        s3Enabled: true,
         // To deploy the next version of ES instead of latest:
         // 1. Change esContainerTag to "next"
         // 2. Replace KEY with EDGE_KEY in envVars
         // 3. Get EDGE_KEY by running: docker run --rm datafi/es:next --init --endpoint https://<es-endpoint>
         esContainerTag: "latest", // Change to "next" for next version
-        s3BucketSuffix: "",
         memory: 2048,
         cpu: 1024,
         desiredCount: 1, // Number of instance of the same container you want to run in parallel , default is 1
@@ -64,4 +63,5 @@ export const config: StackConfig = {
   },
   updateApiSecret: process.env.UPDATE_API_SECRET || "",
   allowDeleteResources: false,
+  sharedS3BucketSuffix: "v1",
 };

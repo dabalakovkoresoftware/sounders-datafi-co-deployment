@@ -70,7 +70,7 @@ export function createCoordinator(
     },
   };
 
-  const additionalS3Buckets = sharedS3Buckets
+  const s3Buckets = sharedS3Buckets
     ? [sharedS3Buckets.datafilesBucket, sharedS3Buckets.documentsBucket]
     : undefined;
 
@@ -83,8 +83,7 @@ export function createCoordinator(
       coordinatorProps,
       namespace,
       undefined,
-      undefined,
-      additionalS3Buckets
+      s3Buckets
     );
 
   // Add target group to load balancer

@@ -1,6 +1,5 @@
 import { Construct } from "constructs";
 import { EdgeServerConfig } from "../../types";
-import { createS3Bucket } from "./s3";
 import { createService, ServiceProps } from "./service";
 import { setGrpcTarget, setHttpsTarget } from "./targets";
 import { ServiceInfo } from "./update-api";
@@ -14,8 +13,6 @@ const defaultEnvVars = {
 
 const conf = {
   name: "es",
-  s3Enabled: true,
-  s3BucketSuffix: "",
   memroy: 512,
   cpu: 256,
   envVars: {
@@ -38,8 +35,6 @@ export function createLongRunningEdgeServer(
     documentsBucket: cdk.aws_s3.Bucket;
   }
 ): ServiceInfo {
-  let s3bucket: cdk.aws_s3.Bucket | undefined = undefined;
-
   const prefix = `datafi-es-${esConfig.name}`;
 
   // Container Environment Variables
@@ -49,13 +44,22 @@ export function createLongRunningEdgeServer(
     envVars.MEMORY = `${Math.round(esConfig.memory / 2)}`; // limit data caching to half of the memory
   }
 
-  if (esConfig.s3Enabled) {
-    s3bucket = createS3Bucket(
-      stack,
-      `datafi-edge-${esConfig.name}${
-        esConfig.s3BucketSuffix ? `-${esConfig.s3BucketSuffix}` : ""
-      }`
-    );
+  // Generate PARQUET_STORAGE environment variable if shared buckets are provided
+  if (sharedS3Buckets) {
+    const parquetStorageConfig = {
+      amazonS3: {
+        region: "",
+        accessKeyId: "",
+        secretAccessKey: "",
+        bucketName: sharedS3Buckets.datafilesBucket.bucketName,
+      },
+    };
+
+    // Base64 encode the configuration
+    const parquetStorageBase64 = Buffer.from(
+      JSON.stringify(parquetStorageConfig, null, 4)
+    ).toString("base64");
+    envVars.PARQUET_STORAGE = parquetStorageBase64;
   }
 
   const esProps: ServiceProps = {
@@ -75,7 +79,7 @@ export function createLongRunningEdgeServer(
     envVars,
   };
 
-  const additionalS3Buckets = sharedS3Buckets
+  const s3Buckets = sharedS3Buckets
     ? [sharedS3Buckets.datafilesBucket, sharedS3Buckets.documentsBucket]
     : undefined;
 
@@ -88,8 +92,7 @@ export function createLongRunningEdgeServer(
       esProps,
       namespace,
       esConfig.esContainerTag,
-      s3bucket,
-      additionalS3Buckets
+      s3Buckets
     );
 
   // add target group to container
