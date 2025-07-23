@@ -18,7 +18,11 @@ export function createCoordinator(
   sg: cdk.aws_ec2.SecurityGroup,
   listener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
   gRPCListener: cdk.aws_elasticloadbalancingv2.ApplicationListener,
-  namespace?: cdk.aws_servicediscovery.PrivateDnsNamespace
+  namespace?: cdk.aws_servicediscovery.PrivateDnsNamespace,
+  sharedS3Buckets?: {
+    datafilesBucket: cdk.aws_s3.Bucket;
+    documentsBucket: cdk.aws_s3.Bucket;
+  }
 ): ServiceInfo {
   const prefix = `datafi-co-${coordinatorConfig.name}`;
 
@@ -82,8 +86,21 @@ export function createCoordinator(
     },
   };
 
+  const s3Buckets = sharedS3Buckets
+    ? [sharedS3Buckets.datafilesBucket, sharedS3Buckets.documentsBucket]
+    : undefined;
+
   const { targets, CLUSTER_NAME, SERVICE_NAME, CONTAINER_NAME, taskDef } =
-    createService(stack, prefix, cluster, sg, coordinatorProps, namespace);
+    createService(
+      stack,
+      prefix,
+      cluster,
+      sg,
+      coordinatorProps,
+      namespace,
+      undefined,
+      s3Buckets
+    );
 
   // Add target group to load balancer
   let domain, httpsPriority, grpcPriority;

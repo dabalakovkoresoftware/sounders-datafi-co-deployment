@@ -6,6 +6,7 @@ import { createLongRunningEdgeServer } from "./utils/edge-server-lr";
 import { createCoordinator } from "./utils/coordinator";
 import { setupUnifiedUpdateAPI, ServiceInfo } from "./utils/update-api";
 import { setHttpsTarget } from "./utils/targets";
+import { createSharedS3Buckets } from "./utils/s3";
 import { config } from "../config";
 
 export class DatafiEdgeStack extends cdk.Stack {
@@ -21,6 +22,9 @@ export class DatafiEdgeStack extends cdk.Stack {
     const { cluster, namespace, sg, listener, gRPCListener } =
       setupBaseResources(this);
 
+    // Create shared S3 buckets for datafiles and documents
+    const { datafilesBucket, documentsBucket } = createSharedS3Buckets(this);
+
     // Collect all services for update API
     const services: ServiceInfo[] = [];
 
@@ -33,7 +37,8 @@ export class DatafiEdgeStack extends cdk.Stack {
         sg,
         listener,
         gRPCListener,
-        namespace
+        namespace,
+        { datafilesBucket, documentsBucket }
       );
 
       if (serviceInfo) {
@@ -50,7 +55,8 @@ export class DatafiEdgeStack extends cdk.Stack {
         sg,
         listener,
         gRPCListener,
-        namespace
+        namespace,
+        { datafilesBucket, documentsBucket }
       );
 
       if (coordinatorInfo) {

@@ -1,6 +1,7 @@
 import { StackConfig } from "./types";
 
 export const config: StackConfig = {
+  deploymentName: "sounders",
   aws: {
     accountId: "779846784384", // your aws account id
     region: "us-west-2", // your aws region
@@ -63,4 +64,5 @@ export const config: StackConfig = {
   },
   updateApiSecret: process.env.UPDATE_API_SECRET || "",
   allowDeleteResources: false,
+  sharedS3BucketSuffix: "v1",
 };

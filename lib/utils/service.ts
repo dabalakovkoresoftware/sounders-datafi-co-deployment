@@ -36,7 +36,7 @@ export const createService = (
   props: ServiceProps,
   namespace?: SD.INamespace,
   containerTag?: string,
-  s3bucket?: S3.Bucket
+  s3Buckets?: S3.Bucket[]
 ) => {
   const imageUri =
     props.containerImage || `datafi/es:${containerTag || "latest"}`;
@@ -75,12 +75,20 @@ export const createService = (
     }
   }
 
-  // Add S3 read/write access policy if s3bucket is provided
-  if (s3bucket) {
+  // Add S3 access for additional buckets
+  if (s3Buckets && s3Buckets.length > 0) {
+    const bucketArns: string[] = [];
+    const bucketObjectArns: string[] = [];
+
+    s3Buckets.forEach((bucket) => {
+      bucketArns.push(bucket.bucketArn);
+      bucketObjectArns.push(`${bucket.bucketArn}/*`);
+    });
+
     taskDef.addToTaskRolePolicy(
       new IAM.PolicyStatement({
         actions: ["s3:*"],
-        resources: [s3bucket.bucketArn, `${s3bucket.bucketArn}/*`],
+        resources: [...bucketArns, ...bucketObjectArns],
       })
     );
   }

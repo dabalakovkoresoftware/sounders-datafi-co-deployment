@@ -1,5 +1,6 @@
 export type StackConfig = {
   disableStack?: boolean; // If this is true, the stack will not be created
+  deploymentName: string; // Name of the deployment (e.g., "sounders") used for resource naming
   aws: {
     accountId: string;
     region: string;
@@ -23,14 +24,15 @@ export type StackConfig = {
   };
   coordinator?: CoordinatorConfig; // Optional coordinator configuration - only one coordinator per deployment
   updateApiSecret: string; // Shared API secret for all update endpoints (ES and CO)
+  sharedS3BucketSuffix?: string; // Optional suffix for shared S3 buckets to ensure uniqueness, can be used if you get the error that says bucket name already exists
   allowDeleteResources: boolean; // If this is true, the stack will delete the data resources when the stack is deleted (eg: data uploaded to S3 though the edge server)
 };
 
 export type EdgeServerConfig = {
   name: string;
-  s3Enabled: boolean;
-  s3BucketSuffix?: string; // s3BucketSuffix - can be used if you get the error that says bucket name already exists
+  s3Enabled?: boolean; // If this is true, the edge server will use S3 for datafiles and documents
   esContainerTag?: string; // Container tag for the edge server , default is latest
+  s3BucketSuffix?: string; // Suffix for the S3 bucket name, default is empty
   memory: number;
   cpu: number;
   desiredCount?: number; // Number of instance of the same container you want to run in parallel , default is 1
@@ -43,6 +45,7 @@ export type EdgeServerConfig = {
     KEY?: string;
     EDGE_KEY?: string;
     JWT_JWKS?: string; // JWT public key for token validation (should match coordinator's private key)
+    PARQUET_STORAGE?: string; // This is used for Datafiles Storage
   };
 };
 
