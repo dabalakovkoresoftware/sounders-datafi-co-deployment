@@ -76,6 +76,7 @@ export const setupBaseResources = (scope: Construct) => {
     port: 50051,
     certificates,
     protocol: ELB.ApplicationProtocol.HTTPS,
+    sslPolicy: ELB.SslPolicy.RECOMMENDED_TLS //ELBSecurityPolicy-TLS13-1-2-2021-06
   });
 
   port80Listener.addAction("80to443Redirect", {
@@ -90,6 +91,7 @@ export const setupBaseResources = (scope: Construct) => {
     open: true,
     port: 443,
     certificates,
+    sslPolicy: ELB.SslPolicy.RECOMMENDED_TLS //ELBSecurityPolicy-TLS13-1-2-2021-06
   });
 
   listener.addAction("default-action", {

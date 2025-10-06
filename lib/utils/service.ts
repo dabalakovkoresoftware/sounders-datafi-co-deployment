@@ -7,6 +7,7 @@ import * as SecretsManager from "aws-cdk-lib/aws-secretsmanager";
 
 import { Construct } from "constructs";
 import { ICluster } from "aws-cdk-lib/aws-ecs";
+import { Tags } from "aws-cdk-lib";
 
 type PortMapping = {
   containerPort: number;
@@ -66,8 +67,11 @@ export const createService = (
         cpuArchitecture: props.arch || ECS.CpuArchitecture.X86_64,
         operatingSystemFamily: ECS.OperatingSystemFamily.LINUX,
       },
+
     }
   );
+
+  Tags.of(taskDef).add("Stack", `Datafi`);
 
   if (Array.isArray(props.policies)) {
     for (const policy of props.policies) {
@@ -125,7 +129,11 @@ export const createService = (
     serviceName: props.name,
     securityGroups: [sg],
     cloudMapOptions: cloudMapOptions,
+    enableECSManagedTags: true,
+    propagateTags: ECS.PropagatedTagSource.SERVICE,
   });
+
+  Tags.of(service).add("Stack", `Datafi`);
 
   const targets: { [k: number]: ECS.IEcsLoadBalancerTarget } = {};
 

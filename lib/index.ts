@@ -17,6 +17,7 @@ export class DatafiEdgeStack extends cdk.Stack {
     if (config.disableStack) return;
 
     this.tags.setTag("Stack", "Datafi");//, 1, true);
+    cdk.Tags.of(this).add('Stack', 'Datafi');
 
     // Setup base resources
     const { cluster, namespace, sg, listener, gRPCListener } =
